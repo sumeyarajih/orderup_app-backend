@@ -19,4 +19,111 @@ model User {
   isVerified   Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  
+  // Relations
+  cartItems   CartItem[]
+  orders      Order[]
+  addresses   Address[]
+}
+
+model FoodItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  image       String?  // Can be URL or emoji
+  category    String
+  rating      Float?   @default(4.5)
+  calories    Int?
+  protein     String?
+  carbs       String?
+  fat         String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model CartItem {
+  id         String   @id @default(cuid())
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodItemId String
+  foodItem  FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, foodItemId])
+}
+
+model Order {
+  id           String    @id @default(cuid())
+  totalAmount  Float
+  status       OrderStatus @default(PENDING)
+  paymentMethod PaymentMethod?
+  paymentStatus PaymentStatus @default(PENDING)
+  deliveryAddress String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relations
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  quantity   Int
+  price      Float    // Price at time of order
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  foodItemId String
+  foodItem   FoodItem @relation(fields: [foodItemId], references: [id])
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  fullAddress String
+  city        String
+  state       String?
+  zipCode     String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  EBIRR
+  ARIFPAY
+  CASH_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
